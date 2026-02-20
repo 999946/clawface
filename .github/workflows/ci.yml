@@ -24,8 +24,7 @@ jobs:
   lint-typecheck:
     name: Lint & Type Check
     # Advisory only — does not block build or other jobs.
-    # Remove continue-on-error once repo lint errors are resolved.
-    continue-on-error: true
+    # No "needs:" from other jobs, so failures here won't block CI.
     uses: OrrisTech/.github/.github/workflows/ci-lint-typecheck.yml@main
     secrets: inherit
 
@@ -42,7 +41,7 @@ jobs:
   security:
     name: Security Audit
     # Advisory only — does not block other jobs.
-    continue-on-error: true
+    # No "needs:" from other jobs, so failures here won't block CI.
     uses: OrrisTech/.github/.github/workflows/ci-security.yml@main
     secrets: inherit
 
