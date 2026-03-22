@@ -93,10 +93,14 @@ npm install
 # Build TypeScript
 npm run build
 
-# Build signed DMG
+# Build the default signed DMG
 npm run dist
 
-# The DMG is now at release/ClawFace Gateway-1.0.0-arm64.dmg
+# Or build an Intel DMG explicitly
+npm run dist:x64
+
+# The DMGs are now at release/ClawFace Gateway-1.0.0-arm64.dmg
+# or release/ClawFace Gateway-1.0.0-x64.dmg
 ```
 
 To add notarization to the build, update `electron-builder.yml`:
@@ -111,17 +115,17 @@ afterSign: scripts/notarize.js
 Or manually notarize after building:
 
 ```bash
-# Submit for notarization
-xcrun notarytool submit "release/ClawFace Gateway-1.0.0-arm64.dmg" \
+# Submit the DMG for notarization
+xcrun notarytool submit "release/ClawFace Gateway-1.0.0-x64.dmg" \
   --keychain-profile "notarytool-profile" \
   --wait
 
 # Staple the notarization ticket to the DMG
-xcrun stapler staple "release/ClawFace Gateway-1.0.0-arm64.dmg"
+xcrun stapler staple "release/ClawFace Gateway-1.0.0-x64.dmg"
 
 # Verify
-xcrun stapler validate "release/ClawFace Gateway-1.0.0-arm64.dmg"
-spctl --assess --type execute --verbose "release/ClawFace Gateway-1.0.0-arm64.dmg"
+xcrun stapler validate "release/ClawFace Gateway-1.0.0-x64.dmg"
+spctl --assess --type execute --verbose "release/ClawFace Gateway-1.0.0-x64.dmg"
 ```
 
 ### Step 5: Host on clawface.app
@@ -130,6 +134,7 @@ Upload the DMG to your website and provide a download link. Example:
 
 ```
 https://clawface.app/download/ClawFace-Gateway-1.0.0-arm64.dmg
+https://clawface.app/download/ClawFace-Gateway-1.0.0-x64.dmg
 ```
 
 Add a download page to the website that:
@@ -181,9 +186,17 @@ mas:
 
 ---
 
+## Intel Support
+
+To build an Intel DMG from the repo:
+
+```bash
+npm run dist:x64
+```
+
 ## Universal Binary (Intel + Apple Silicon)
 
-Currently the build targets `arm64` only. To support Intel Macs:
+If you prefer a single universal app instead of separate per-architecture DMGs:
 
 ```yaml
 mac:

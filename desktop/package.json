@@ -11,6 +11,7 @@
     "build": "tsc",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --mac dmg",
+    "dist:x64": "bash ./scripts/build-mac-dmg.sh x64",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
