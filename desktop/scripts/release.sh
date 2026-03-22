@@ -19,7 +19,13 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DESKTOP_DIR="$REPO_ROOT/desktop"
 RELEASE_DIR="$DESKTOP_DIR/release"
 VERSION=$(node -p "require('$DESKTOP_DIR/package.json').version")
-DMG_NAME="ClawFace-Gateway-${VERSION}-arm64.dmg"
+HOST_ARCH="$(uname -m)"
+case "$HOST_ARCH" in
+  arm64) DMG_ARCH="arm64" ;;
+  x86_64) DMG_ARCH="x64" ;;
+  *) echo "Unsupported host architecture: $HOST_ARCH"; exit 1 ;;
+esac
+DMG_NAME="ClawFace-Gateway-${VERSION}-${DMG_ARCH}.dmg"
 UNSIGNED=false
 GITHUB_RELEASE=false
 
@@ -100,7 +106,7 @@ if [ "$GITHUB_RELEASE" = true ]; then
 
 Download the DMG below, open it, and drag ClawFace Gateway to your Applications folder.
 
-**Requirements:** macOS 13+ (Ventura or later), Apple Silicon (arm64)
+**Requirements:** macOS 13+ (Ventura or later), Apple Silicon (arm64) or Intel (x64)
 
 ### What's included
 - System monitoring (CPU, memory, disk, temperature, network)

@@ -10,8 +10,9 @@
     "dev": "tsc && electron .",
     "build": "tsc",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --mac dmg",
+    "dist": "bash ./scripts/build-mac-dmg.sh",
     "dist:x64": "bash ./scripts/build-mac-dmg.sh x64",
+    "dist:arm64": "bash ./scripts/build-mac-dmg.sh arm64",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {

@@ -70,11 +70,14 @@ cd gateway && npm run build && cd ..
 # Run the desktop app in development mode
 cd desktop && npm run dev
 
-# Or build the default DMG installer
+# Or build a DMG installer for the current Mac architecture
 cd desktop && npm run dist
 
 # Build an explicit Intel DMG
 cd desktop && npm run dist:x64
+
+# Build an explicit Apple Silicon DMG
+cd desktop && npm run dist:arm64
 ```
 
 The DMG is output to `desktop/release/`.

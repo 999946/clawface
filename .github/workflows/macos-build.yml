@@ -1,0 +1,66 @@
+name: macOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/macos-build.yml"
+      - "desktop/**"
+      - "gateway/**"
+      - "shared/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos:
+    name: Build ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: macos-15-intel
+            script: dist:x64
+          - arch: arm64
+            runner: macos-15
+            script: dist
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build gateway
+        run: pnpm --filter @openclaw/gateway-monitor build
+
+      - name: Build desktop
+        run: pnpm --filter clawface-desktop build
+
+      - name: Package DMG
+        run: pnpm --filter clawface-desktop ${{ matrix.script }}
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: clawface-${{ matrix.arch }}-dmg
+          path: desktop/release/*.dmg
+          if-no-files-found: error

@@ -93,11 +93,12 @@ npm install
 # Build TypeScript
 npm run build
 
-# Build the default signed DMG
+# Build a signed DMG for the current Mac architecture
 npm run dist
 
-# Or build an Intel DMG explicitly
+# Or build a specific architecture
 npm run dist:x64
+npm run dist:arm64
 
 # The DMGs are now at release/ClawFace Gateway-1.0.0-arm64.dmg
 # or release/ClawFace Gateway-1.0.0-x64.dmg
@@ -192,6 +193,12 @@ To build an Intel DMG from the repo:
 
 ```bash
 npm run dist:x64
+```
+
+To build an Apple Silicon DMG explicitly:
+
+```bash
+npm run dist:arm64
 ```
 
 ## Universal Binary (Intel + Apple Silicon)

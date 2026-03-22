@@ -20,11 +20,14 @@ npm install
 # Run in development mode
 npm run dev
 
-# Build the default DMG installer
+# Build a DMG for the current Mac architecture
 npm run dist
 
 # Build an Intel DMG explicitly
 npm run dist:x64
+
+# Build an Apple Silicon DMG explicitly
+npm run dist:arm64
 ```
 
 The DMG is output to `release/`. Open it and drag ClawFace Gateway to Applications.
@@ -58,8 +61,9 @@ desktop/
 | `npm run dev` | Compile TypeScript and launch Electron |
 | `npm run build` | Compile TypeScript only |
 | `npm run pack` | Package the app (unpacked, for testing) |
-| `npm run dist` | Build the default DMG installer |
+| `npm run dist` | Build a DMG installer for the current Mac architecture |
 | `npm run dist:x64` | Build an Intel DMG explicitly |
+| `npm run dist:arm64` | Build an Apple Silicon DMG explicitly |
 
 ## How It Works
 

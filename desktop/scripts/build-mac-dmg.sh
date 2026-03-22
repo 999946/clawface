@@ -38,6 +38,11 @@ for arch in "${ARCHES[@]}"; do
   STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/clawface-dmg-$arch.XXXXXX")"
   DMG_PATH="$RELEASE_DIR/$PRODUCT_NAME-$VERSION-$arch.dmg"
 
+  cleanup() {
+    rm -rf "$STAGE_DIR"
+  }
+  trap cleanup EXIT
+
   echo "==> Building $arch app bundle"
   pnpm exec electron-builder --mac dir "--$arch" "-c.directories.output=$OUTPUT_DIR"
 
@@ -58,4 +63,6 @@ for arch in "${ARCHES[@]}"; do
     "$DMG_PATH" >/dev/null
 
   echo "Built $DMG_PATH"
+  cleanup
+  trap - EXIT
 done
