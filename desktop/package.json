@@ -14,7 +14,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "@openclaw/gateway-monitor": "*",
+    "@openclaw/gateway-monitor": "workspace:*",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
