@@ -26,7 +26,7 @@ export function createTray(): { tray: Tray; window: BrowserWindow } {
   // Create the dropdown BrowserWindow (hidden initially)
   dropdownWindow = new BrowserWindow({
     width: 340,
-    height: 680,
+    height: 540,
     show: false,
     frame: false,
     resizable: false,
@@ -106,9 +106,9 @@ function showContextMenu(): void {
   tray?.popUpContextMenu(contextMenu);
 }
 
-/** Update the tray tooltip with live stats. */
-export function updateTrayTooltip(cpu: number, mem: number): void {
-  tray?.setToolTip(`ClawFace — CPU: ${Math.round(cpu)}% | Mem: ${Math.round(mem)}%`);
+/** Keep the tray tooltip stable and brand-focused. */
+export function updateTrayTooltip(): void {
+  tray?.setToolTip('ClawFace Gateway');
 }
 
 /** Get the dropdown BrowserWindow for IPC communication. */

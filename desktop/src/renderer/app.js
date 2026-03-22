@@ -6,17 +6,6 @@ const $ = (id) => document.getElementById(id);
 // DOM refs — header
 const gatewayDot = $('gateway-dot');
 const gatewayLabel = $('gateway-label');
-const hostname = $('hostname');
-
-// DOM refs — system metrics
-const cpuBar = $('cpu-bar');
-const cpuVal = $('cpu-val');
-const memBar = $('mem-bar');
-const memVal = $('mem-val');
-const diskBar = $('disk-bar');
-const diskVal = $('disk-val');
-const tempVal = $('temp-val');
-const netVal = $('net-val');
 
 // DOM refs — OpenClaw expandable
 const openclawSection = $('openclaw-section');
@@ -59,21 +48,6 @@ aiHeader.addEventListener('click', () => {
 
 // --- Helpers ---
 
-function setBar(barEl, valueEl, percent) {
-  const p = Math.max(0, Math.min(100, percent));
-  barEl.style.width = `${p}%`;
-  barEl.classList.remove('warning', 'critical');
-  if (p >= 80) barEl.classList.add('critical');
-  else if (p >= 60) barEl.classList.add('warning');
-  valueEl.textContent = `${Math.round(p)}%`;
-}
-
-function formatSpeed(mbps) {
-  if (mbps == null || mbps < 0.01) return '0 KB/s';
-  if (mbps < 1) return `${Math.round(mbps * 1024)} KB/s`;
-  return `${mbps.toFixed(1)} MB/s`;
-}
-
 function formatCost(amount) {
   if (amount == null || amount === 0) return '$0.00';
   if (amount >= 1000) return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -106,17 +80,6 @@ window.clawface.onStatusUpdate((status) => {
   // Header
   gatewayDot.classList.remove('disconnected', 'error');
   gatewayLabel.textContent = 'Gateway Running';
-  hostname.textContent = status.hostname || '';
-
-  // System metrics
-  const sys = status.system;
-  setBar(cpuBar, cpuVal, sys.cpu.usage);
-  setBar(memBar, memVal, sys.memory.usagePercent);
-  setBar(diskBar, diskVal, sys.disk.usagePercent);
-
-  // Detail rows
-  tempVal.textContent = sys.temperature?.cpu != null ? `${Math.round(sys.temperature.cpu)}\u00B0C` : '--';
-  netVal.textContent = `\u2191 ${formatSpeed(sys.network?.uploadMBps)}  \u2193 ${formatSpeed(sys.network?.downloadMBps)}`;
 
   // OpenClaw section
   const oc = status.openclaw;

@@ -116,7 +116,7 @@ function wireMonitorHooks(m: OpenClawMonitor): void {
     if (win && !win.isDestroyed()) {
       win.webContents.send('status:update', status);
     }
-    updateTrayTooltip(status.system.cpu.usage, status.system.memory.usagePercent);
+    updateTrayTooltip();
   });
 
   // Listen for paired state changes (fires when iOS device pairs/unpairs via relay)
