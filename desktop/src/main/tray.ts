@@ -3,30 +3,97 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DROPDOWN_WIDTH = 340;
+const DEFAULT_DROPDOWN_HEIGHT = 540;
+const MIN_DROPDOWN_HEIGHT = 420;
+const DROPDOWN_VERTICAL_OFFSET = 4;
 
 let tray: Tray | null = null;
 let dropdownWindow: BrowserWindow | null = null;
+let idleIcon: Electron.NativeImage | null = null;
+let runningIcon: Electron.NativeImage | null = null;
+
+function loadTemplateIcon(filename: string): Electron.NativeImage {
+  const iconPath = path.join(__dirname, '..', '..', 'src', 'assets', filename);
+  const icon = nativeImage.createFromPath(iconPath);
+  icon.setTemplateImage(true);
+  return icon;
+}
+
+function drawBadge(bitmap: Buffer, width: number, height: number): void {
+  const radius = Math.max(2, Math.round(Math.min(width, height) * 0.14));
+  const centerX = width - radius - Math.max(2, Math.round(width * 0.14));
+  const centerY = height - radius - Math.max(2, Math.round(height * 0.18));
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const dx = x - centerX;
+      const dy = y - centerY;
+      if ((dx * dx) + (dy * dy) > radius * radius) continue;
+
+      const offset = ((y * width) + x) * 4;
+      bitmap[offset] = 255;
+      bitmap[offset + 1] = 255;
+      bitmap[offset + 2] = 255;
+      bitmap[offset + 3] = 255;
+    }
+  }
+}
+
+function createRunningTemplateIcon(baseIcon: Electron.NativeImage): Electron.NativeImage {
+  const icon = nativeImage.createEmpty();
+
+  for (const scaleFactor of baseIcon.getScaleFactors()) {
+    const { width, height } = baseIcon.getSize(scaleFactor);
+    const bitmap = Buffer.from(baseIcon.toBitmap({ scaleFactor }));
+    drawBadge(bitmap, width, height);
+    icon.addRepresentation({ scaleFactor, width, height, buffer: bitmap });
+  }
+
+  icon.setTemplateImage(true);
+  return icon;
+}
+
+function getDropdownMetrics(height = dropdownWindow?.getBounds().height ?? DEFAULT_DROPDOWN_HEIGHT): {
+  x: number;
+  y: number;
+  height: number;
+} | null {
+  if (!tray) return null;
+
+  const trayBounds = tray.getBounds();
+  const display = screen.getDisplayNearestPoint({ x: trayBounds.x, y: trayBounds.y });
+  const y = Math.round(trayBounds.y + trayBounds.height + DROPDOWN_VERTICAL_OFFSET);
+  const availableHeight = display.workArea.y + display.workArea.height - y - 8;
+  const preferredHeight = Math.max(MIN_DROPDOWN_HEIGHT, Math.ceil(height));
+  const clampedHeight = Math.min(preferredHeight, Math.max(260, availableHeight));
+  const x = Math.round(trayBounds.x + trayBounds.width / 2 - DROPDOWN_WIDTH / 2);
+  const clampedX = Math.max(
+    display.workArea.x,
+    Math.min(x, display.workArea.x + display.workArea.width - DROPDOWN_WIDTH),
+  );
+
+  return { x: clampedX, y, height: clampedHeight };
+}
 
 /** Create the system tray icon and dropdown window. */
 export function createTray(): { tray: Tray; window: BrowserWindow } {
-  // Load template image (macOS auto-adapts for dark/light menu bar)
-  const iconPath = path.join(__dirname, '..', '..', 'src', 'assets', 'tray-icon.png');
-  let icon: Electron.NativeImage;
+  // Load template images (macOS auto-adapts for dark/light menu bar)
   try {
-    icon = nativeImage.createFromPath(iconPath);
-    icon.setTemplateImage(true);
+    idleIcon = loadTemplateIcon('tray-icon.png');
+    runningIcon = createRunningTemplateIcon(idleIcon);
   } catch {
-    // Fallback: create a simple colored icon
-    icon = nativeImage.createEmpty();
+    idleIcon = nativeImage.createEmpty();
+    runningIcon = idleIcon;
   }
 
-  tray = new Tray(icon);
+  tray = new Tray(idleIcon);
   tray.setToolTip('ClawFace Gateway');
 
   // Create the dropdown BrowserWindow (hidden initially)
   dropdownWindow = new BrowserWindow({
-    width: 340,
-    height: 540,
+    width: DROPDOWN_WIDTH,
+    height: DEFAULT_DROPDOWN_HEIGHT,
     show: false,
     frame: false,
     resizable: false,
@@ -69,18 +136,15 @@ function toggleDropdown(): void {
     return;
   }
 
-  // Position below the tray icon
-  const trayBounds = tray.getBounds();
-  const windowBounds = dropdownWindow.getBounds();
-  const display = screen.getDisplayNearestPoint({ x: trayBounds.x, y: trayBounds.y });
+  const metrics = getDropdownMetrics();
+  if (!metrics) return;
 
-  const x = Math.round(trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2);
-  const y = Math.round(trayBounds.y + trayBounds.height + 4);
-
-  // Clamp to screen bounds
-  const clampedX = Math.max(display.workArea.x, Math.min(x, display.workArea.x + display.workArea.width - windowBounds.width));
-
-  dropdownWindow.setPosition(clampedX, y, false);
+  dropdownWindow.setBounds({
+    x: metrics.x,
+    y: metrics.y,
+    width: DROPDOWN_WIDTH,
+    height: metrics.height,
+  }, false);
   dropdownWindow.show();
   dropdownWindow.focus();
 }
@@ -106,9 +170,32 @@ function showContextMenu(): void {
   tray?.popUpContextMenu(contextMenu);
 }
 
-/** Keep the tray tooltip stable and brand-focused. */
-export function updateTrayTooltip(): void {
-  tray?.setToolTip('ClawFace Gateway');
+/** Reflect OpenClaw service state in the menu bar icon and tooltip. */
+export function updateTrayState(isRunning: boolean): void {
+  if (!tray) return;
+  tray.setImage(isRunning ? (runningIcon ?? idleIcon ?? nativeImage.createEmpty()) : (idleIcon ?? nativeImage.createEmpty()));
+  tray.setToolTip(isRunning ? 'ClawFace Gateway — OpenClaw Running' : 'ClawFace Gateway — OpenClaw Stopped');
+}
+
+/** Resize the dropdown to fit its rendered content without forcing page scrollbars. */
+export function resizeDropdown(contentHeight: number): void {
+  if (!dropdownWindow) return;
+
+  const nextHeight = Math.max(MIN_DROPDOWN_HEIGHT, Math.ceil(contentHeight));
+  const metrics = getDropdownMetrics(nextHeight);
+  if (!metrics) return;
+
+  const currentBounds = dropdownWindow.getBounds();
+  if (currentBounds.height === metrics.height && currentBounds.x === metrics.x && currentBounds.y === metrics.y) {
+    return;
+  }
+
+  dropdownWindow.setBounds({
+    x: metrics.x,
+    y: metrics.y,
+    width: DROPDOWN_WIDTH,
+    height: metrics.height,
+  }, false);
 }
 
 /** Get the dropdown BrowserWindow for IPC communication. */

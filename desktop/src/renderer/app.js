@@ -3,6 +3,8 @@
 
 const $ = (id) => document.getElementById(id);
 
+const panel = $('panel');
+
 // DOM refs — header
 const gatewayDot = $('gateway-dot');
 const gatewayLabel = $('gateway-label');
@@ -29,12 +31,15 @@ const aiRequests = $('ai-requests');
 
 // DOM refs — pairing
 const pairingSection = $('pairing-section');
+const pairingHeader = $('pairing-header');
+const pairSummary = $('pair-summary');
 const pairCodeEl = $('pair-code');
 const pairQrEl = $('pair-qr');
 const unpairSection = $('unpair-section');
 const unpairBtn = $('unpair-btn');
 
 let isPaired = false;
+let resizeFrame = 0;
 
 // --- Expand / collapse ---
 
@@ -46,7 +51,39 @@ aiHeader.addEventListener('click', () => {
   aiSection.classList.toggle('expanded');
 });
 
+pairingHeader.addEventListener('click', () => {
+  pairingSection.classList.toggle('expanded');
+});
+
 // --- Helpers ---
+
+function schedulePanelResize() {
+  if (!window.clawface.resizePanel) return;
+
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(() => {
+    const panelStyles = window.getComputedStyle(panel);
+    const totalHeight = panel.offsetHeight
+      + parseFloat(panelStyles.marginTop || '0')
+      + parseFloat(panelStyles.marginBottom || '0')
+      + 18;
+    window.clawface.resizePanel(totalHeight).catch(() => {});
+  });
+}
+
+function formatOpenClawVersion(version, compact = false) {
+  if (!version) return '';
+
+  let normalized = String(version).trim();
+  normalized = normalized.replace(/^v(?=openclaw\s+)/i, '');
+  normalized = normalized.replace(/^openclaw\s+/i, '');
+
+  if (compact) {
+    normalized = normalized.replace(/\s*\([^)]+\)\s*$/, '');
+  }
+
+  return normalized.trim();
+}
 
 function formatCost(amount) {
   if (amount == null || amount === 0) return '$0.00';
@@ -99,8 +136,8 @@ window.clawface.onStatusUpdate((status) => {
 function updateOpenClaw(oc) {
   // Summary line
   const activeCount = oc.sessions?.active ?? 0;
-  const version = oc.version ? `v${oc.version}` : '';
-  openclawSummary.textContent = `${version}  ${activeCount} active`;
+  const version = formatOpenClawVersion(oc.version, true);
+  openclawSummary.textContent = version ? `${version}  ${activeCount} active` : `${activeCount} active`;
 
   // Expanded details
   ocStatus.textContent = oc.status || '--';
@@ -166,6 +203,8 @@ function updateOpenClaw(oc) {
   if (oc.tokens) {
     ocTokens.textContent = `\u2191 ${formatTokens(oc.tokens.input)}  \u2193 ${formatTokens(oc.tokens.output)}`;
   }
+
+  schedulePanelResize();
 }
 
 // --- AI Usage data ---
@@ -231,6 +270,8 @@ function updateAiUsage(ai) {
       aiProvidersContainer.appendChild(card);
     }
   }
+
+  schedulePanelResize();
 }
 
 // --- Gateway state changes ---
@@ -252,6 +293,8 @@ window.clawface.onGatewayState((state) => {
     pairingSection.style.display = '';
     unpairSection.style.display = 'none';
   }
+
+  schedulePanelResize();
 });
 
 // --- Pairing code ---
@@ -259,12 +302,15 @@ window.clawface.onGatewayState((state) => {
 function handlePairData(data) {
   if (!data || !data.code) return;
   pairCodeEl.textContent = data.code;
+  pairSummary.textContent = data.code;
   if (data.qrDataUrl) {
     pairQrEl.src = data.qrDataUrl;
   }
   if (!isPaired) {
     pairingSection.style.display = '';
   }
+
+  schedulePanelResize();
 }
 
 window.clawface.onPairCode(handlePairData);
@@ -281,4 +327,12 @@ unpairBtn.addEventListener('click', () => {
 $('clawface-link').addEventListener('click', (e) => {
   e.preventDefault();
   window.clawface.openExternal('https://clawface.app');
+});
+
+new ResizeObserver(() => {
+  schedulePanelResize();
+}).observe(panel);
+
+window.addEventListener('load', () => {
+  schedulePanelResize();
 });

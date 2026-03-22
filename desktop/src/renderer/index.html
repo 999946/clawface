@@ -19,7 +19,7 @@
     </div>
 
     <!-- OpenClaw expandable section -->
-    <div class="section expandable-section" id="openclaw-section">
+    <div class="section expandable-section expanded" id="openclaw-section">
       <div class="expandable-header" id="openclaw-header">
         <span class="chevron">&#9656;</span>
         <span class="expandable-title">OpenClaw</span>
@@ -75,11 +75,17 @@
     </div>
 
     <!-- Pairing section (shown when not paired) -->
-    <div class="section pairing-section" id="pairing-section">
-      <div class="pair-label">Pair with ClawFace app</div>
-      <img class="pair-qr" id="pair-qr" alt="QR Code">
-      <div class="pair-code" id="pair-code">CLAW-XXXX</div>
-      <div class="pair-hint">Scan QR or enter code in the iOS app</div>
+    <div class="section expandable-section pairing-section" id="pairing-section">
+      <div class="expandable-header" id="pairing-header">
+        <span class="chevron">&#9656;</span>
+        <span class="expandable-title">Pair with ClawFace app</span>
+        <span class="expandable-summary accent" id="pair-summary">CLAW-XXXX</span>
+      </div>
+      <div class="expandable-details" id="pairing-details">
+        <img class="pair-qr" id="pair-qr" alt="QR Code">
+        <div class="pair-code" id="pair-code">CLAW-XXXX</div>
+        <div class="pair-hint">Scan QR or enter code in the iOS app</div>
+      </div>
     </div>
 
     <!-- Unpair section (shown when paired) -->

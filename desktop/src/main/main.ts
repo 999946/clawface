@@ -6,7 +6,7 @@
 import { app, ipcMain } from 'electron';
 import { OpenClawMonitor } from '@openclaw/gateway-monitor';
 import QRCode from 'qrcode';
-import { createTray, updateTrayTooltip, getDropdownWindow } from './tray.js';
+import { createTray, updateTrayState, getDropdownWindow, resizeDropdown } from './tray.js';
 import { registerIpcHandlers } from './ipc-handlers.js';
 
 // Hide dock icon — menu bar only
@@ -32,6 +32,9 @@ app.whenReady().then(async () => {
 
   // 3. Pull handler: renderer requests latest pair data after it loads
   ipcMain.handle('pair:get', () => latestPairData);
+  ipcMain.handle('window:resize-panel', (_event, height: number) => {
+    resizeDropdown(height);
+  });
 
   // 4. Unpair handler: stop monitor, clear pair data, restart for re-pairing
   ipcMain.handle('pair:unpair', async () => {
@@ -116,7 +119,7 @@ function wireMonitorHooks(m: OpenClawMonitor): void {
     if (win && !win.isDestroyed()) {
       win.webContents.send('status:update', status);
     }
-    updateTrayTooltip();
+    updateTrayState(status.openclaw?.isRunning === true || status.openclaw?.status === 'running');
   });
 
   // Listen for paired state changes (fires when iOS device pairs/unpairs via relay)

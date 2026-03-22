@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('clawface', {
   // Request channels: renderer → main
   getPairData: () => ipcRenderer.invoke('pair:get'),
   unpair: () => ipcRenderer.invoke('pair:unpair'),
+  resizePanel: (height) => ipcRenderer.invoke('window:resize-panel', height),
   quitApp: () => ipcRenderer.invoke('app:quit'),
   toggleAutoLaunch: (enabled) => ipcRenderer.invoke('app:toggle-auto-launch', enabled),
   getAutoLaunch: () => ipcRenderer.invoke('app:get-auto-launch'),

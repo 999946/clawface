@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/gateway-monitor",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "OpenClaw Gateway monitor modules - system stats, AI usage tracking, relay connection",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

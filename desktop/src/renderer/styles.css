@@ -6,6 +6,11 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  overflow: hidden;
+}
+
 body {
   background: transparent;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
@@ -120,6 +125,7 @@ body {
   padding: 10px 16px;
   cursor: pointer;
   transition: background 0.15s ease;
+  min-width: 0;
 }
 
 .expandable-header:hover {
@@ -139,6 +145,7 @@ body {
 }
 
 .expandable-title {
+  min-width: 0;
   font-size: 12px;
   font-weight: 600;
   color: #a0a0b8;
@@ -146,10 +153,15 @@ body {
 
 .expandable-summary {
   margin-left: auto;
+  max-width: 56%;
   font-size: 12px;
   font-weight: 600;
   font-family: 'SF Mono', 'Menlo', monospace;
   color: #d0d0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
 }
 
 .expandable-details {
@@ -271,8 +283,16 @@ body {
 
 /* Pairing section */
 .pairing-section {
+  padding: 0;
+}
+
+.pairing-section .expandable-details {
   text-align: center;
-  padding: 16px;
+}
+
+.pairing-section.expanded .expandable-details {
+  max-height: 260px;
+  padding: 0 16px 16px;
 }
 
 .pair-label {
